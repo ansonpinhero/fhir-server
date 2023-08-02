@@ -17,6 +17,7 @@ using Microsoft.Health.Fhir.Core.Configs;
 using Microsoft.Health.Fhir.Core.Extensions;
 using Microsoft.Health.Fhir.Core.Features.Conformance.Models;
 using Microsoft.Health.Fhir.Core.Features.Definition;
+using Microsoft.Health.Fhir.Core.Features.Operations;
 using Microsoft.Health.Fhir.Core.Features.Routing;
 using Microsoft.Health.Fhir.Core.Features.Search.Registry;
 using Microsoft.Health.Fhir.Core.Features.Validation;
@@ -39,8 +40,8 @@ namespace Microsoft.Health.Fhir.Core.Features.Conformance
         private readonly IModelInfoProvider _modelInfoProvider;
         private readonly ISearchParameterDefinitionManager _searchParameterDefinitionManager;
         private readonly IUrlResolver _urlResolver;
-        private readonly Func<IScoped<IEnumerable<IProvideCapability>>> _capabilityProviders;
-        private readonly List<Action<ListedCapabilityStatement>> _configurationUpdates = new List<Action<ListedCapabilityStatement>>();
+        private readonly IScopeProvider<IEnumerable<IProvideCapability>> _capabilityProviders;
+        private readonly List<Action<ListedCapabilityStatement>> _configurationUpdates = new();
         private readonly IOptions<CoreFeatureConfiguration> _configuration;
         private readonly ISupportedProfilesStore _supportedProfiles;
         private readonly ILogger _logger;
@@ -55,7 +56,7 @@ namespace Microsoft.Health.Fhir.Core.Features.Conformance
         public SystemConformanceProvider(
             IModelInfoProvider modelInfoProvider,
             ISearchParameterDefinitionManager.SearchableSearchParameterDefinitionManagerResolver searchParameterDefinitionManagerResolver,
-            Func<IScoped<IEnumerable<IProvideCapability>>> capabilityProviders,
+            IScopeProvider<IEnumerable<IProvideCapability>> capabilityProviders,
             IOptions<CoreFeatureConfiguration> configuration,
             ISupportedProfilesStore supportedProfiles,
             ILogger<SystemConformanceProvider> logger,
@@ -101,7 +102,7 @@ namespace Microsoft.Health.Fhir.Core.Features.Conformance
                     {
                         _builder = CapabilityStatementBuilder.Create(_modelInfoProvider, _searchParameterDefinitionManager, _configuration, _supportedProfiles, _urlResolver, _searchParameterStatusManager);
 
-                        using (IScoped<IEnumerable<IProvideCapability>> providerFactory = _capabilityProviders())
+                        using (IScoped<IEnumerable<IProvideCapability>> providerFactory = _capabilityProviders.Invoke())
                         {
                             IEnumerable<IProvideCapability> providers = providerFactory.Value;
                             foreach (IProvideCapability provider in providers)

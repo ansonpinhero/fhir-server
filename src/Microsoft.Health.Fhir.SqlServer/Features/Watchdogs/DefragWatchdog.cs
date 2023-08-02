@@ -18,13 +18,13 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Watchdogs
 {
     public sealed class DefragWatchdog : Watchdog<DefragWatchdog>
     {
+        private readonly ISqlRetryService _sqlRetryService;
         private const byte QueueType = (byte)Core.Features.Operations.QueueType.Defrag;
         private int _threads;
         private int _heartbeatPeriodSec;
         private int _heartbeatTimeoutSec;
         private CancellationToken _cancellationToken;
 
-        private readonly ISqlRetryService _sqlRetryService;
         private readonly SqlQueueClient _sqlQueueClient;
         private readonly ILogger<DefragWatchdog> _logger;
 
@@ -40,7 +40,6 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Watchdogs
         }
 
         internal DefragWatchdog()
-            : base()
         {
             // this is used to get param names for testing
         }
