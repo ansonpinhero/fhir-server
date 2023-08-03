@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.JobManagement
@@ -99,9 +100,9 @@ namespace Microsoft.Health.JobManagement
             EnsureArg.IsNotNull(jobInfo, nameof(jobInfo));
             using var jobCancellationToken = new CancellationTokenSource();
 
-            IJob job = _jobFactory.Create(jobInfo);
+            using IScoped<IJob> job = _jobFactory.Create(jobInfo);
 
-            if (job == null)
+            if (job?.Value == null)
             {
                 _logger.LogWarning("Not supported job type");
                 return;
@@ -118,11 +119,11 @@ namespace Microsoft.Health.JobManagement
                 var progress = new Progress<string>((result) => { jobInfo.Result = result; });
 
 #pragma warning disable CS0618 // Type or member is obsolete. Needed for Import jobs, we should move away from this method.
-                var runningJob = useHeavyHeartbeats
+                Task<string> runningJob = useHeavyHeartbeats
                                ? ExecuteJobWithHeavyHeartbeatsAsync(
                                     _queueClient,
                                     jobInfo,
-                                    cancellationSource => job.ExecuteAsync(jobInfo, progress, cancellationSource.Token),
+                                    cancellationSource => job.Value.ExecuteAsync(jobInfo, progress, cancellationSource.Token),
                                     TimeSpan.FromSeconds(JobHeartbeatIntervalInSeconds),
                                     jobCancellationToken)
                                : ExecuteJobWithHeartbeatsAsync(
@@ -130,7 +131,7 @@ namespace Microsoft.Health.JobManagement
                                     jobInfo.QueueType,
                                     jobInfo.Id,
                                     jobInfo.Version,
-                                    cancellationSource => job.ExecuteAsync(jobInfo, progress, cancellationSource.Token),
+                                    cancellationSource => job.Value.ExecuteAsync(jobInfo, progress, cancellationSource.Token),
                                     TimeSpan.FromSeconds(JobHeartbeatIntervalInSeconds),
                                     jobCancellationToken);
 #pragma warning restore CS0618 // Type or member is obsolete
