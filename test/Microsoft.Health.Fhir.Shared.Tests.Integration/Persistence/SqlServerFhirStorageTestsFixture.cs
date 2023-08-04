@@ -123,7 +123,7 @@ namespace Microsoft.Health.Fhir.Tests.Integration.Persistence
             var serviceProviderSchemaInitializer = collection.BuildServiceProvider();
             _schemaInitializer = new SchemaInitializer(serviceProviderSchemaInitializer, SqlServerDataStoreConfiguration, SchemaInformation, mediator, NullLogger<SchemaInitializer>.Instance);
 
-            _searchParameterDefinitionManager = new SearchParameterDefinitionManager(ModelInfoProvider.Instance, _mediator, () => _searchService.CreateMockScope(), NullLogger<SearchParameterDefinitionManager>.Instance);
+            _searchParameterDefinitionManager = new SearchParameterDefinitionManager(ModelInfoProvider.Instance, _mediator, CreateMockedScopeExtensions.CreateMockScopeProvider(() => _searchService), NullLogger<SearchParameterDefinitionManager>.Instance);
 
             _filebasedSearchParameterStatusDataStore = new FilebasedSearchParameterStatusDataStore(_searchParameterDefinitionManager, ModelInfoProvider.Instance);
 
@@ -137,7 +137,7 @@ namespace Microsoft.Health.Fhir.Tests.Integration.Persistence
                 _searchParameterDefinitionManager,
                 () => _filebasedSearchParameterStatusDataStore,
                 Options.Create(securityConfiguration),
-                () => SqlConnectionWrapperFactory.CreateMockScope(),
+                SqlConnectionWrapperFactory.CreateMockScopeProvider(),
                 Substitute.For<IMediator>(),
                 NullLogger<SqlServerFhirModel>.Instance);
             SqlServerFhirModel = sqlServerFhirModel;
@@ -161,7 +161,7 @@ namespace Microsoft.Health.Fhir.Tests.Integration.Persistence
             _supportedSearchParameterDefinitionManager = new SupportedSearchParameterDefinitionManager(_searchParameterDefinitionManager);
 
             SqlServerSearchParameterStatusDataStore = new SqlServerSearchParameterStatusDataStore(
-                () => SqlConnectionWrapperFactory.CreateMockScope(),
+                SqlConnectionWrapperFactory.CreateMockScopeProvider(),
                 upsertSearchParamsTvpGenerator,
                 () => _filebasedSearchParameterStatusDataStore,
                 SchemaInformation,
