@@ -365,11 +365,11 @@ namespace Microsoft.Health.Fhir.CosmosDb.Features.Storage
                 if (!cosmosWrapper.IsDeleted)
                 {
                     // check if the new resource data is same as existing resource data
-                    if (string.Equals(RemoveVersionIdAndLastUpdatedFromMeta(existingItemResource), RemoveVersionIdAndLastUpdatedFromMeta(cosmosWrapper), StringComparison.Ordinal))
-                    {
+                    // if (string.Equals(RemoveVersionIdAndLastUpdatedFromMeta(existingItemResource), RemoveVersionIdAndLastUpdatedFromMeta(cosmosWrapper), StringComparison.Ordinal))
+                    // {
                         // Do not store the duplicate data, for a update with no impact - returning existingItemResource as no updates
-                        return new UpsertOutcome(existingItemResource, SaveOutcomeType.Updated);
-                    }
+                    //     return new UpsertOutcome(existingItemResource, SaveOutcomeType.Updated);
+                    // }
                 }
 
                 cosmosWrapper.Version = int.TryParse(existingItemResource.Version, out int existingVersion) ? (existingVersion + 1).ToString(CultureInfo.InvariantCulture) : Guid.NewGuid().ToString();
